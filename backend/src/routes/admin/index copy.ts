@@ -1,0 +1,17 @@
+export {default as itemController} from './item.Controller';
+export {default as sizeController} from './size.controller';
+export {default as stockController} from './stock.Controller';
+export {default as tarController} from './tar.controller';
+export {default as boxController} from './box.controller';
+export {default as soldingController} from './solding.controller';
+export {default as jointController} from './joint.controller';
+export {default as clientController} from './client.controller';
+export {default as karigarController} from './karigar.controller';
+export {default as karigarPurchaseController} from './karigarPurchase.controller';
+export {default as cuttingController} from './cutting.controller';
+export {default as billingController} from './billing.controller';
+export {default as manufactureHistoryController} from './manufactureHistory.controller';
+export {default as backupController} from './backup.controller';
+export {default as kundaController} from './kunda.controller';
+export {default as profileController} from './profile.controller';
+export {default as meltingController} from './melting.controller';

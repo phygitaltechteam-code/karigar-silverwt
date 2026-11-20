@@ -1,0 +1,12 @@
+export {default as userValidation} from './user.validation';
+export {default as adminValidation} from './admin.validation';
+export {default as commonValidation} from './common.validation';
+export {default as customValidation} from './custom.validation';
+export {default as karigarValidation} from './karigar.validation';
+export {default as designValidation} from './design.validation';
+export {default as rateValidation} from './rate.validation';
+export {default as itemValidation} from './item.validation';
+export {default as sizeValidation} from './size.validation';
+export {default as stockValidation} from './stock.validation';
+export {default as clientValidation} from './client.validation';
+export {default as licenseKeyValidation} from './licenseKey.validation';

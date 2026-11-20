@@ -1,0 +1,8 @@
+node_modules/
+dist/
+dist-ssr/
+*.log
+.tanstack/
+backend/public/temp
+.env
+!.env.example

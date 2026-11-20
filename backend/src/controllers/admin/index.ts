@@ -1,0 +1,10 @@
+export {default as karigarController} from './karigar.controller';
+export {default as designController} from './design.controller';
+export {default as rateController} from './rate.controller';
+export {default as itemController} from './item.Controller';
+export {default as sizeController} from './size.controller';
+export {default as stockController} from './stock.Controller';
+export {default as clientController} from './client.controller';
+export {default as profileController} from './profile.controller';
+export {default as manufacturingController} from './manufacturing.controller';
+export {default as billingController} from './billing.controller';

@@ -1,0 +1,17 @@
+export {default as itemService} from './item.service';
+export {default as sizeService} from './size.service';
+export {default as stockService} from './stock.service';
+export {default as tarService} from './tar.service';
+export {default as boxService} from './box.service';
+export {default as soldingService} from './solding.service';
+export {default as jointService} from './joint.service';
+export {default as clientService} from './client.service';
+export {default as karigarService} from './karigar.service';
+export {default as karigarPurchaseService} from './karigarPurchase.service';
+export {default as cuttingService} from './cutting.service';
+export {default as billingService} from './billling.service';
+export {default as manufactureHistoryService} from './manufactureHistory.service';
+export {default as backupService} from './backup.service';
+export {default as kundaService} from './kunda.service';
+export {default as ProfileService} from './profile.service';
+export {default as meltingService} from './melting.service';

@@ -1,0 +1,605 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  SUPERADMIN
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  username             String?
+  email                String?
+  fullname             String
+  password             String?
+  refreshToken         String?
+  address              String?
+  isAccessClosed       Boolean   @default(false)
+  verifyCode           String?
+  verifyCodeExpiry     DateTime?
+  isVerified           Boolean   @default(false)
+  isActive             Boolean   @default(true)
+  phoneNumber          String    @unique
+  secondaryPhoneNumber String?
+  role                 Role      @default(ADMIN)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  deletedAt            DateTime?
+  admin                Admin?
+}
+
+enum accessType {
+  ONLINE
+  OFFLINE
+  TRIAL
+}
+
+model Admin {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  amount        Float?
+  renewalAmount Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  accessType accessType @default(OFFLINE)
+
+  meltingRate   Float?
+  companyRate   Float?
+  pressRate     Float?
+  suttRate      Float?
+  bharnaiRate   Float?
+  cuttingRate   Float?
+  washRate      Float?
+  polishingRate Float?
+  vibratorRate  Float?
+  meenaRate     Float?
+  tassRate      Float?
+
+  city            String?
+  state           String?
+  country         String?
+  shopName        String?
+  district        String?
+  logo            String?
+  coverImage      String?
+  key             String?
+  isUsedKey       Boolean  @default(false)
+  extendKey       String?
+  extendDays      Int?
+  isExtendUsedKey Boolean?
+  BrandColour     String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  startDate           DateTime?
+  expiryDate          DateTime?
+  pincode             String?
+  contactPersonName   String?
+  contactPersonEmail  String?
+  contactPersonNumber String?
+  karigars            karigar[]
+  designs             design[]
+  items               Item[]
+  sizes               size[]
+  stocks              Stock[]
+  silverHistories     silverHistory[]
+  stockHistories      stockHistory[]
+  clients             client[]
+  processEntries      ProcessEntry[]
+  processStockCards   ProcessStockCard[]
+  workStartTime       DateTime?
+  workEndTime         DateTime?
+  pdfHeader           pdfHeader?
+  tarAlerts           tarAlert[]
+  meltingAlerts       meltingAlert[]
+  boxAlerts           boxAlert[]
+  kundaAlerts         kundaAlert[]
+  jointAlerts         jointAlert[]
+  cuttingAlerts       cuttingAlert[]
+  solderingAlerts     solderingAlert[]
+  galaiAlerts         galaiAlert[]
+  processAlerts       processAlert[]
+}
+
+enum manufacturingProcess {
+  MELTING
+  COMPANY
+  PRESS
+  SUTT
+  BHARNI
+  CUTTING
+  WASH
+  SOLDERING
+  POLISHING
+  VIBRATOR
+  MEENA
+  TASS
+}
+
+model karigar {
+  id             String               @id @default(uuid())
+  name           String
+  process        manufacturingProcess @default(MELTING)
+  phone          String?              @unique
+  address        String?
+  openingBalance Float?
+  adminId        String
+  admin          Admin                @relation(fields: [adminId], references: [id])
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  processEntries ProcessEntry[]
+  payments       KarigarPayment[]
+}
+
+model design {
+  id        String               @id @default(uuid())
+  name      String
+  process   manufacturingProcess @default(MELTING)
+  rate      Float?
+  adminId   String
+  admin     Admin                @relation(fields: [adminId], references: [id])
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@unique([name, adminId])
+}
+
+model Item {
+  id              String          @id @default(uuid())
+  name            String
+  adminId         String
+  admin           Admin           @relation(fields: [adminId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  openingStoces   Stock[]
+  silverHistories silverHistory[]
+  stockHistories  stockHistory[]
+  clientHistories clientHistory[]
+  galais          galai[]
+  receiptItems    receiptItem[]
+}
+
+model size {
+  id              String          @id @default(uuid())
+  size            String
+  adminId         String
+  admin           Admin           @relation(fields: [adminId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  openingStoces   Stock[]
+  silverHistories silverHistory[]
+  stockHistories  stockHistory[]
+  clientHistories clientHistory[]
+  galais          galai[]
+  receiptItems    receiptItem[]
+}
+
+model Stock {
+  id           String   @id @default(uuid())
+  itemId       String
+  sizeId       String?
+  weight       Float
+  purity       Float?
+  design       String?
+  stamp        String?
+  processTrack String[] @default([])
+  // LOOSE: finished goods not packed yet (after Vibrator), billed by weight.
+  // PRODUCT: everything else; a packed product gets its own row (its own product ID).
+  kind         String   @default("PRODUCT")
+  // Weight when packed (kept for history; weight goes down when the product is billed)
+  packedWeight Float?
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id])
+  size         size?    @relation(fields: [sizeId], references: [id])
+  item         Item     @relation(fields: [itemId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([adminId, itemId])
+}
+
+enum type {
+  INWARD
+  OUTWARD
+}
+
+model silverHistory {
+  id         String   @id @default(uuid())
+  type       type
+  weight     Float
+  adminId    String
+  itemId     String
+  sizeId     String?
+  item       Item     @relation(fields: [itemId], references: [id])
+  size       size?    @relation(fields: [sizeId], references: [id])
+  // receiptId  String?
+  note       String?
+  // receipt    receipt? @relation(fields: [receiptId], references: [id])
+  afterStock Float
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  client     client?  @relation(fields: [clientId], references: [id])
+  clientId   String?
+}
+
+model stockHistory {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id])
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id])
+  sizeId    String?
+  size      size?    @relation(fields: [sizeId], references: [id])
+  purity    Float?
+  remark    String // E.g., "Inward", "Outward", "Scale Manufactured", "Received", "Given"
+  weight    Float
+  isManual  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model client {
+  id              String          @id @default(uuid())
+  fullName        String
+  phoneNumber     String
+  address         String?
+  openingBalance  Float
+  adminId         String
+  admin           Admin           @relation(fields: [adminId], references: [id])
+  due             Float?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  silverHistories silverHistory[]
+  clientHistories clientHistory[]
+  galais          galai[]
+  receipts        receipt[]
+}
+
+model clientHistory {
+  id         String   @id @default(uuid())
+  clientId   String
+  client     client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  billNumber String?
+  itemId     String?
+  item       Item?    @relation(fields: [itemId], references: [id])
+  sizeId     String?
+  size       size?    @relation(fields: [sizeId], references: [id])
+  purity     Float?
+  remark     String // "Settle", "Advance", "Sale", "Received", "Given"
+  weight     Float
+  receiptId  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model galai {
+  id         String   @id @default(uuid())
+  clientId   String
+  client     client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  billNumber String?
+  itemId     String?
+  item       Item?    @relation(fields: [itemId], references: [id])
+  sizeId     String?
+  size       size?    @relation(fields: [sizeId], references: [id])
+  purity     Float?
+  remark     String // "Settle", "Advance", "Sale", "Received", "Given"
+  weight     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ---------------------------------------------------------------------------
+// Manufacturing flow: Galai -> Company -> Press -> Sutt -> Bharni -> Cutting
+//   -> Wash -> Soldering -> Meena -> Tass -> Polishing -> Vibrator
+// Every stage keeps its table rows in ProcessEntry and its finished output
+// (what can be sent to the next stage) in ProcessStockCard.
+// ---------------------------------------------------------------------------
+enum ProcessStage {
+  GALAI
+  COMPANY
+  PRESS
+  SUTT
+  BHARNI
+  CUTTING
+  WASH
+  SOLDERING
+  MEENA
+  TASS
+  POLISHING
+  VIBRATOR
+}
+
+enum ProcessEntryStatus {
+  PENDING
+  COMPLETED
+}
+
+model ProcessEntry {
+  id            String             @id @default(uuid())
+  adminId       String
+  admin         Admin              @relation(fields: [adminId], references: [id])
+  process       ProcessStage
+  status        ProcessEntryStatus @default(PENDING)
+  karigarId     String?
+  karigar       karigar?           @relation(fields: [karigarId], references: [id], onDelete: SetNull)
+  karigarName   String?
+  rate          Float?
+  particular    String?
+  stamp         String?
+  purity        Float              @default(0)
+  grossWt       Float              @default(0)
+  expectedFine  Float              @default(0)
+  fineWeight    Float?
+  scrapWeight   Float?
+  loss          Float?
+  sourceProcess String?
+  sourceCardId  String?
+  sourceCard    ProcessStockCard?  @relation("CardDispatches", fields: [sourceCardId], references: [id], onDelete: SetNull)
+  // Stage-specific fields (design, size, qty, partNo, stock used, ...)
+  details       Json?
+  completedAt   DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  outputCards   ProcessStockCard[] @relation("EntryOutput")
+
+  @@index([adminId, process, status])
+}
+
+model ProcessStockCard {
+  id              String         @id @default(uuid())
+  adminId         String
+  admin           Admin          @relation(fields: [adminId], references: [id])
+  process         ProcessStage
+  purity          Float          @default(0)
+  stamp           String?
+  design          String?
+  size            String?
+  qty             String?
+  totalWeight     Float
+  availableWeight Float
+  sourceEntryId   String?
+  sourceEntry     ProcessEntry?  @relation("EntryOutput", fields: [sourceEntryId], references: [id], onDelete: SetNull)
+  details         Json?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  dispatches      ProcessEntry[] @relation("CardDispatches")
+
+  @@index([adminId, process])
+}
+
+// Print header settings used on every report/print page (one per admin)
+model pdfHeader {
+  id                  String   @id @default(uuid())
+  adminId             String   @unique
+  admin               Admin    @relation(fields: [adminId], references: [id])
+  leftInovation       String?
+  rightInovation      String?
+  factoryName         String?
+  description         String?
+  proprietorName      String?
+  phoneNumbers        String?
+  invocationColor     String?
+  factoryNameColor    String?
+  descriptionColor    String?
+  proprietorColor     String?
+  phoneColor          String?
+  factoryFontSize     String?
+  descriptionFontSize String?
+  proprietorFontSize  String?
+  phoneFontSize       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Loss alert rules per process (Alert Management page)
+
+model tarAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model meltingAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model boxAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model kundaAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model jointAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model cuttingAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model solderingAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+model galaiAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id])
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId])
+}
+
+// Payments to a karigar (Karigar page ledger). DEBIT = paid to karigar, CREDIT = taken back/adjusted.
+model KarigarPayment {
+  id        String   @id @default(uuid())
+  adminId   String
+  karigarId String
+  karigar   karigar  @relation(fields: [karigarId], references: [id], onDelete: Cascade)
+  amount    Float
+  type      String   @default("DEBIT")
+  account   String?
+  job       String?
+  stage     String?
+  stageId   String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([adminId, karigarId])
+}
+
+// ---------------------------------------------------------------------------
+// Billing (Create Bill / Bill list / Bill edit). DRAFT bills do not touch stock
+// or balances; BILL (completed) deducts stock and updates the client's balance.
+// ---------------------------------------------------------------------------
+enum ReceiptType {
+  DRAFT
+  BILL
+}
+
+model receipt {
+  id              String        @id @default(uuid())
+  adminId         String
+  clientID        String
+  client          client        @relation(fields: [clientID], references: [id])
+  billNumber      String
+  receiptDate     DateTime?
+  type            ReceiptType   @default(BILL)
+  totalWeight     Float         @default(0)
+  customerWeight  Float         @default(0)
+  // Advance rows (item, purity, gross, fine) the customer gave; customerWeight is their fine total
+  advanceItems    Json?
+  remainingWeight Float         @default(0)
+  dueBalance      Float?
+  totalBill       Float?
+  // Change applied to the client balance when completed (reversed on edit/delete)
+  balanceDelta    Float         @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  receiptItems    receiptItem[]
+
+  @@unique([adminId, billNumber])
+  @@index([adminId, createdAt])
+}
+
+model receiptItem {
+  id          String   @id @default(uuid())
+  receiptID   String
+  receipt     receipt  @relation(fields: [receiptID], references: [id], onDelete: Cascade)
+  itemID      String
+  item        Item     @relation(fields: [itemID], references: [id])
+  sizeID      String?
+  size        size?    @relation(fields: [sizeID], references: [id])
+  purity      Float    @default(0)
+  grossWeight Float    @default(0)
+  srp         Float    @default(0)
+  fineWeight  Float    @default(0)
+  laborRate   Float    @default(0)
+  /// GRAM = labour charged in fine grams (added to the bill), AMOUNT = labour in rupees
+  laborType   String   @default("GRAM")
+  design      String?
+  stamp       String?
+  productCode String?
+  createdAt   DateTime @default(now())
+}
+
+/// Loss alert rules for the chain stages (Company ... Vibrator); one table, keyed by process
+model processAlert {
+  id         String   @id @default(uuid())
+  adminId    String
+  admin      Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  process    String
+  grossWt    Float
+  lossWt     Float    @default(0)
+  adjsutment Float    @default(0)
+  purity     Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([adminId, process])
+}

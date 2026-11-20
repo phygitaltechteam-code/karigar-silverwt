@@ -1,0 +1,10 @@
+export {default as karigarService} from './karigar.service';
+export {default as designService} from './design.service';
+export {default as rateService} from './rate.service';
+export {default as itemService} from './item.service';
+export {default as sizeService} from './size.service';
+export {default as stockService} from './stock.service';
+export {default as clientService} from './client.service';
+export {default as ProfileService} from './profile.service';
+export {default as manufacturingService} from './manufacturing.service';
+export {default as billingService} from './billing.service';
